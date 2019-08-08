@@ -93,7 +93,7 @@ gboolean option_state_full_filename = TRUE;
 
 gboolean enable_show_tabs_tws = TRUE;
 gboolean option_check_nl_at_eof = FALSE;
-gboolean option_group_undo = FALSE;
+gboolean option_group_undo = TRUE;
 gboolean show_right_margin = FALSE;
 
 char *option_backup_ext = NULL;
