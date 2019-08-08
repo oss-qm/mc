@@ -1309,7 +1309,7 @@ do_subshell_chdir (const vfs_path_t * vpath, gboolean update_prompt)
 
     /* The initial space keeps this out of the command history (in bash
        because we set "HISTCONTROL=ignorespace") */
-    write_all (mc_global.tty.subshell_pty, " cd ", 4);
+    write_all (mc_global.tty.subshell_pty, "\013\025 cd ", 6);
 
     if (vpath != NULL)
     {
