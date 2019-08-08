@@ -40,12 +40,6 @@ do_open_action() {
         ;;
     *)
         if [ -n "$DISPLAY" ]; then
-            if which geeqie >/dev/null 2>&1; then
-                (geeqie "${MC_EXT_FILENAME}" &)
-            else
-                (gqview "${MC_EXT_FILENAME}" &)
-            fi
-        elif see >/dev/null 2>&1; then
             (see "${MC_EXT_FILENAME}" &)
         else
             (zgv "${MC_EXT_FILENAME}" &)
