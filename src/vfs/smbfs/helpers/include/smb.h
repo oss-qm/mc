@@ -102,18 +102,6 @@ BOOL dbgtext ();
   ( (DEBUGLEVEL >= (level)) \
    && dbghdr( level, FILE_MACRO, FUNCTION_MACRO, (__LINE__) ) )
 
-#if 0
-
-#define DEBUG( level, body ) \
-  ( ( DEBUGLEVEL >= (level) \
-   && dbghdr( level, FILE_MACRO, FUNCTION_MACRO, (__LINE__) ) ) \
-      ? (void)(dbgtext body) : (void)0 )
-
-#define DEBUGADD( level, body ) \
-     ( (DEBUGLEVEL >= (level)) ? (void)(dbgtext body) : (void)0 )
-
-#else
-
 #define DEBUG( level, body ) \
   (void)( (DEBUGLEVEL >= (level)) \
        && (dbghdr( level, FILE_MACRO, FUNCTION_MACRO, (__LINE__) )) \
@@ -121,8 +109,6 @@ BOOL dbgtext ();
 
 #define DEBUGADD( level, body ) \
   (void)( (DEBUGLEVEL >= (level)) && (dbgtext body) )
-
-#endif
 
 /* End Debugging code section.
  * -------------------------------------------------------------------------- **
@@ -796,16 +782,6 @@ struct passdb_ops
     struct sam_disp_info *(*getsamdispnam) (char *);
     struct sam_disp_info *(*getsamdisprid) (uint32);
     struct sam_disp_info *(*getsamdispent) (void *);
-
-#if 0
-    /*
-     * password checking functions
-     */
-    struct smb_passwd *(*smb_password_chal) (char *username, char lm_pass[24], char nt_pass[24],
-                                             char chal[8]);
-    struct smb_passwd *(*smb_password_check) (char *username, char lm_hash[16], char nt_hash[16]);
-    struct passwd *(*unix_password_check) (char *username, char *pass, int pass_len);
-#endif
 };
 
 /* this is used for smbstatus */
@@ -1227,11 +1203,7 @@ struct bitmap
 #define FILE_ALL_STANDARD_ACCESS 0x1F0000
 
 /* Mapping of access rights to UNIX perms. */
-#if 0                           /* Don't use all here... JRA. */
-#define UNIX_ACCESS_RWX (FILE_ALL_ATTRIBUTES|FILE_ALL_STANDARD_ACCESS)
-#else
 #define UNIX_ACCESS_RWX (UNIX_ACCESS_R|UNIX_ACCESS_W|UNIX_ACCESS_X)
-#endif
 
 #define UNIX_ACCESS_R (READ_CONTROL_ACCESS|SYNCHRONIZE_ACCESS|\
 			FILE_READ_ATTRIBUTES|FILE_READ_EA|FILE_READ_DATA)

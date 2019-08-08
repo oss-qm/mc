@@ -168,49 +168,8 @@ sys_stat (const char *fname, SMB_STRUCT_STAT * sbuf)
 }
 
 /*******************************************************************
- An lstat() wrapper that will deal with 64 bit filesizes.
-********************************************************************/
-#if 0
-int
-sys_lstat (const char *fname, SMB_STRUCT_STAT * sbuf)
-{
-    return lstat (fname, sbuf);
-}
-
-/*******************************************************************
- An fseek() wrapper that will deal with 64 bit filesizes.
-********************************************************************/
-
-int
-sys_fseek (FILE * fp, SMB_OFF_T offset, int whence)
-{
-    return fseek (fp, offset, whence);
-}
-
-/*******************************************************************
- An ftell() wrapper that will deal with 64 bit filesizes.
-********************************************************************/
-
-SMB_OFF_T
-sys_ftell (FILE * fp)
-{
-    return (SMB_OFF_T) ftell (fp);
-}
-
-/*******************************************************************
- An open() wrapper that will deal with 64 bit filesizes.
-********************************************************************/
-
-int
-sys_open (const char *path, int oflag, mode_t mode)
-{
-    return open (path, oflag, mode);
-}
-
-/*******************************************************************
  An fopen() wrapper that will deal with 64 bit filesizes.
 ********************************************************************/
-#endif /* 0 */
 
 FILE *
 sys_fopen (const char *path, const char *type)
@@ -218,51 +177,6 @@ sys_fopen (const char *path, const char *type)
     return fopen (path, type);
 }
 
-#if 0
-/*******************************************************************
- A readdir wrapper that will deal with 64 bit filesizes.
-********************************************************************/
-
-SMB_STRUCT_DIRENT *
-sys_readdir (DIR * dirp)
-{
-    return readdir (dirp);
-}
-
-/*******************************************************************
-system wrapper for getwd
-********************************************************************/
-char *
-sys_getwd (char *s)
-{
-    char *wd;
-#ifdef HAVE_GETCWD
-    wd = (char *) getcwd (s, sizeof (pstring));
-#else
-    wd = (char *) getwd (s);
-#endif
-    return wd;
-}
-
-/*******************************************************************
-chown isn't used much but OS/2 doesn't have it
-********************************************************************/
-
-int
-sys_chown (const char *fname, uid_t uid, gid_t gid)
-{
-#ifndef HAVE_CHOWN
-    static int done;
-    if (!done)
-    {
-        DEBUG (1, ("WARNING: no chown!\n"));
-        done = 1;
-    }
-#else
-    return (chown (fname, uid, gid));
-#endif
-}
-#endif /* 0 */
 /**************************************************************************
 A wrapper for gethostbyname() that tries avoids looking up hostnames 
 in the root domain, which can cause dial-on-demand links to come up for no

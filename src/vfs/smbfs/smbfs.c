@@ -502,13 +502,6 @@ smbfs_close (void *data)
         my_errno = EINVAL;
         return -1;
     }
-#if 0
-    /* if imlementing archive_level:    add rname to smbfs_handle */
-    if (archive_level >= 2 && (inf->attr & aARCH))
-    {
-        cli_setatr (info->cli, rname, info->attr & ~(uint16) aARCH, 0);
-    }
-#endif
     return (cli_close (info->cli, info->fnum) == True) ? 0 : -1;
 }
 
@@ -592,10 +585,6 @@ smbfs_loaddir_helper (file_info * finfo, const char *mask, void *entry)
 
     (void) mask;
 
-#if 0                           /* I want to see dot files */
-    if (finfo->mode & aHIDDEN)
-        return;                 /* don't bother with hidden files, "~$" screws up mc */
-#endif
     if (!entry)
         new_entry = smbfs_new_dir_entry (finfo->name);
 
@@ -1392,20 +1381,6 @@ smbfs_get_path (smbfs_connection ** sc, const vfs_path_t * vpath)
 
 /* --------------------------------------------------------------------------------------------- */
 
-#if 0
-static int
-is_error (int result, int errno_num)
-{
-    if (!(result == -1))
-        return my_errno = 0;
-    else
-        my_errno = errno_num;
-    return 1;
-}
-#endif
-
-/* --------------------------------------------------------------------------------------------- */
-
 static void *
 smbfs_opendir (const vfs_path_t * vpath)
 {
@@ -1544,13 +1519,6 @@ smbfs_get_remote_stat (smbfs_connection * sc, const char *path, struct stat *buf
 
     mypath = smbfs_convert_path (path, FALSE);
 
-#if 0                           /* single_entry is never free()d now.  And only my_stat is used */
-    single_entry = g_new (dir_entry, 1);
-
-    single_entry->text = dos_to_unix (g_strdup (finfo->name), 1);
-
-    single_entry->next = 0;
-#endif
     if (!single_entry)
         single_entry = g_new0 (dir_entry, 1);
 
@@ -1594,9 +1562,6 @@ static int
 smbfs_get_stat_info (smbfs_connection * sc, const char *path, struct stat *buf)
 {
     char *p;
-#if 0
-    dir_entry *dentry = current_info->entries;
-#endif
     const char *mypath = path;
 
     mypath++;                   /* cut off leading '/' */
@@ -1604,14 +1569,6 @@ smbfs_get_stat_info (smbfs_connection * sc, const char *path, struct stat *buf)
         mypath = p + 1;         /* advance until last file/dir name */
     DEBUG (3, ("smbfs_get_stat_info: mypath:%s, current_info->dirname:%s\n",
                mypath, current_info->dirname));
-#if 0
-    if (!dentry)
-    {
-        DEBUG (1, ("No dir entries (empty dir) cached:'%s', wanted:'%s'\n",
-                   current_info->dirname, path));
-        return -1;
-    }
-#endif
     if (!single_entry)          /* when found, this will be written too */
         single_entry = g_new (dir_entry, 1);
     if (smbfs_search_dir_entry (current_info->entries, mypath, buf) == 0)

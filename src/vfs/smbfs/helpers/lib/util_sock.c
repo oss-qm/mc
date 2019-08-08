@@ -51,20 +51,6 @@ int lastport = 0;
 
 int smb_read_error = 0;
 
-#if 0
-/****************************************************************************
-determine if a file descriptor is in fact a socket
-****************************************************************************/
-BOOL
-is_a_socket (int fd)
-{
-    int v;
-    unsigned int l;
-    l = sizeof (int);
-    return (getsockopt (fd, SOL_SOCKET, SO_TYPE, (char *) &v, &l) == 0);
-}
-#endif /* 0 */
-
 enum SOCK_OPT_TYPES
 { OPT_BOOL, OPT_INT, OPT_ON };
 
@@ -385,23 +371,6 @@ read_with_timeout (int fd, char *buf, size_t mincnt, size_t maxcnt, unsigned int
     return ((ssize_t) nread);
 }
 
-#if 0
-/****************************************************************************
-send a keepalive packet (rfc1002)
-****************************************************************************/
-BOOL
-send_keepalive (int client)
-{
-    unsigned char buf[4];
-
-    buf[0] = 0x85;
-    buf[1] = buf[2] = buf[3] = 0;
-
-    return (write_data (client, (char *) buf, 4) == 4);
-}
-#endif /* 0 */
-
-
 /****************************************************************************
   read data from the client, reading exactly N bytes. 
 ****************************************************************************/
@@ -525,35 +494,6 @@ read_smb_length_return_keepalive (int fd, char *inbuf, unsigned int timeout)
     return (len);
 }
 
-#if 0
-/****************************************************************************
-read 4 bytes of a smb packet and return the smb length of the packet
-store the result in the buffer. This version of the function will
-never return a session keepalive (length of zero).
-timeout is in milliseconds.
-****************************************************************************/
-ssize_t
-read_smb_length (int fd, char *inbuf, unsigned int timeout)
-{
-    ssize_t len;
-
-    for (;;)
-    {
-        len = read_smb_length_return_keepalive (fd, inbuf, timeout);
-
-        if (len < 0)
-            return len;
-
-        /* Ignore session keepalives. */
-        if (CVAL (inbuf, 0) != 0x85)
-            break;
-    }
-
-    DEBUG (10, ("read_smb_length: got smb length of %d\n", len));
-
-    return len;
-}
-#endif /* 0 */
 /****************************************************************************
   read an smb from a fd. Note that the buffer *MUST* be of size
   BUFFER_SIZE+SAFETY_MARGIN.
@@ -632,108 +572,6 @@ client_receive_smb (int fd, char *buffer, unsigned int timeout)
     show_msg (buffer);
     return ret;
 }
-
-/****************************************************************************
-  send an null session message to a fd
-****************************************************************************/
-#if 0
-BOOL
-send_null_session_msg (int fd)
-{
-    ssize_t ret;
-    uint32 blank = 0;
-    size_t len = 4;
-    size_t nwritten = 0;
-    char *buffer = (char *) &blank;
-
-    while (nwritten < len)
-    {
-        ret = write_socket (fd, buffer + nwritten, len - nwritten);
-        if (ret <= 0)
-        {
-            DEBUG (0,
-                   ("send_null_session_msg: Error writing %d bytes to client. %d. Exiting\n",
-                    (int) len, (int) ret));
-            close_sockets ();
-            exit (1);
-        }
-        nwritten += ret;
-    }
-
-    DEBUG (10, ("send_null_session_msg: sent 4 null bytes to client.\n"));
-    return True;
-}
-
-/****************************************************************************
-  send an smb to a fd 
-****************************************************************************/
-BOOL
-send_smb (int fd, char *buffer)
-{
-    size_t len;
-    size_t nwritten = 0;
-    ssize_t ret;
-    len = smb_len (buffer) + 4;
-
-    while (nwritten < len)
-    {
-        ret = write_socket (fd, buffer + nwritten, len - nwritten);
-        if (ret <= 0)
-        {
-            DEBUG (0, ("Error writing %d bytes to client. %d. Exiting\n", (int) len, (int) ret));
-            close_sockets ();
-            exit (1);
-        }
-        nwritten += ret;
-    }
-
-    return True;
-}
-
-
-
-/****************************************************************************
-send a single packet to a port on another machine
-****************************************************************************/
-BOOL
-send_one_packet (char *buf, int len, struct in_addr ip, int port, int type)
-{
-    BOOL ret;
-    int out_fd;
-    struct sockaddr_in sock_out;
-
-    if (passive)
-        return (True);
-
-    /* create a socket to write to */
-    out_fd = socket (AF_INET, type, 0);
-    if (out_fd == -1)
-    {
-        DEBUG (0, ("socket failed"));
-        return False;
-    }
-
-    /* set the address and port */
-    memset ((char *) &sock_out, '\0', sizeof (sock_out));
-    putip ((char *) &sock_out.sin_addr, (char *) &ip);
-    sock_out.sin_port = htons (port);
-    sock_out.sin_family = AF_INET;
-
-    if (DEBUGLEVEL > 0)
-        DEBUG (3, ("sending a packet of len %d to (%s) on port %d of type %s\n",
-                   len, inet_ntoa (ip), port, type == SOCK_DGRAM ? "DGRAM" : "STREAM"));
-
-    /* send it */
-    ret = (sendto (out_fd, buf, len, 0, (struct sockaddr *) &sock_out, sizeof (sock_out)) >= 0);
-
-    if (!ret)
-        DEBUG (0, ("Packet send to %s(%d) failed ERRNO=%s\n",
-                   inet_ntoa (ip), port, unix_error_string (errno)));
-
-    close (out_fd);
-    return (ret);
-}
-#endif /* 0 */
 
 /****************************************************************************
 open a socket of the specified type, port and address for incoming data

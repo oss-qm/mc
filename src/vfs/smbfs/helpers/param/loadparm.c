@@ -457,9 +457,6 @@ static BOOL handle_include (const char *pszParmValue, char **ptr);
 static BOOL handle_copy (const char *pszParmValue, char **ptr);
 static BOOL handle_character_set (const char *pszParmValue, char **ptr);
 static BOOL handle_coding_system (const char *pszParmValue, char **ptr);
-#if 0
-static void set_default_server_announce_type (void);
-#endif /* 0 */
 static struct enum_list const enum_protocol[] =
     { {PROTOCOL_NT1, "NT1"}, {PROTOCOL_LANMAN2, "LANMAN2"},
 {PROTOCOL_LANMAN1, "LANMAN1"}, {PROTOCOL_CORE, "CORE"},
@@ -1071,20 +1068,7 @@ init_globals (void)
     interpret_coding_system (KANJI);
 }
 
-#if 0
-/***************************************************************************
-check if a string is initialised and if not then initialise it
-***************************************************************************/
-static void
-string_initial (char **s, char *v)
-{
-    if (!*s || !**s)
-        string_init (s, v);
-}
-
-#else
 #define init_locals()
-#endif /* 0 */
 
 static size_t
 size_max (size_t a, size_t b)
@@ -1195,9 +1179,6 @@ FN_GLOBAL_STRING (lp_wins_server, &Globals.szWINSserver)
 FN_GLOBAL_STRING (lp_interfaces, &Globals.szInterfaces)
 FN_GLOBAL_STRING (lp_socket_address, &Globals.szSocketAddress)
 FN_GLOBAL_STRING (lp_nis_home_map_name, &Globals.szNISHomeMapName)
-#if 0
-     static FN_GLOBAL_STRING (lp_announce_version, &Globals.szAnnounceVersion)
-#endif                          /* 0 */
 FN_GLOBAL_STRING (lp_netbios_aliases, &Globals.szNetbiosAliases)
 FN_GLOBAL_STRING (lp_driverfile, &Globals.szDriverFile)
 FN_GLOBAL_STRING (lp_panic_action, &Globals.szPanicAction)
@@ -1253,9 +1234,6 @@ FN_GLOBAL_BOOL (lp_timestamp_logs, &Globals.bTimestampLogs)
 FN_GLOBAL_BOOL (lp_browse_list, &Globals.bBrowseList)
 FN_GLOBAL_BOOL (lp_unix_realname, &Globals.bUnixRealname)
 FN_GLOBAL_BOOL (lp_nis_home_map, &Globals.bNISHomeMap)
-#if 0
-     static FN_GLOBAL_BOOL (lp_time_server, &Globals.bTimeServer)
-#endif                          /* 0 */
 FN_GLOBAL_BOOL (lp_bind_interfaces_only, &Globals.bBindInterfacesOnly)
 FN_GLOBAL_BOOL (lp_passwd_chat_debug, &Globals.bPasswdChatDebug)
 FN_GLOBAL_BOOL (lp_ole_locking_compat, &Globals.bOleLockingCompat)
@@ -1279,9 +1257,6 @@ FN_GLOBAL_INTEGER (lp_maxprotocol, &Globals.maxprotocol)
 FN_GLOBAL_INTEGER (lp_security, &Globals.security)
 FN_GLOBAL_INTEGER (lp_maxdisksize, &Globals.maxdisksize)
 FN_GLOBAL_INTEGER (lp_client_code_page, &Globals.client_code_page)
-#if 0
-     static FN_GLOBAL_INTEGER (lp_announce_as, &Globals.announce_as)
-#endif
 FN_GLOBAL_INTEGER (lp_lm_announce, &Globals.lm_announce)
 FN_GLOBAL_INTEGER (lp_lm_interval, &Globals.lm_interval)
 FN_GLOBAL_INTEGER (lp_machine_password_timeout, &Globals.machine_password_timeout)
@@ -1305,17 +1280,6 @@ FN_LOCAL_STRING (lp_guestaccount, szGuestaccount)
 FN_LOCAL_STRING (lp_invalid_users, szInvalidUsers)
 FN_LOCAL_STRING (lp_valid_users, szValidUsers)
 FN_LOCAL_STRING (lp_admin_users, szAdminUsers)
-#if 0
-FN_LOCAL_STRING (lp_printcommand, szPrintcommand)
-FN_LOCAL_STRING (lp_lpqcommand, szLpqcommand)
-FN_LOCAL_STRING (lp_lprmcommand, szLprmcommand)
-FN_LOCAL_STRING (lp_lppausecommand, szLppausecommand)
-FN_LOCAL_STRING (lp_lpresumecommand, szLpresumecommand)
-FN_LOCAL_STRING (lp_queuepausecommand, szQueuepausecommand)
-FN_LOCAL_STRING (lp_queueresumecommand, szQueueresumecommand)
-FN_LOCAL_STRING (lp_printername, szPrintername)
-FN_LOCAL_STRING (lp_printerdriver, szPrinterDriver)
-#endif                          /* 0 */
 FN_LOCAL_STRING (lp_hostsallow, szHostsallow)
 FN_LOCAL_STRING (lp_hostsdeny, szHostsdeny)
 FN_LOCAL_STRING (lp_magicscript, szMagicScript)
@@ -1326,9 +1290,6 @@ FN_LOCAL_STRING (lp_force_group, force_group)
 FN_LOCAL_STRING (lp_readlist, readlist)
 FN_LOCAL_STRING (lp_writelist, writelist)
 FN_LOCAL_STRING (lp_fstype, fstype)
-#if 0
-     static FN_LOCAL_STRING (lp_volume, volume)
-#endif
 FN_LOCAL_STRING (lp_mangled_map, szMangledMap)
 FN_LOCAL_STRING (lp_veto_files, szVetoFiles)
 FN_LOCAL_STRING (lp_hide_files, szHideFiles)
@@ -1514,40 +1475,6 @@ lp_add_service (char *pszService, int iDefaultService)
 {
     return (add_a_service (pSERVICE (iDefaultService), pszService));
 }
-
-#if 0
-/***************************************************************************
-add the IPC service
-***************************************************************************/
-static BOOL
-lp_add_ipc (void)
-{
-    pstring comment;
-    int i = add_a_service (&sDefault, "IPC$");
-
-    if (i < 0)
-        return (False);
-
-    slprintf (comment, sizeof (comment) - 1, "IPC Service (%s)", Globals.szServerString);
-
-    string_set (&iSERVICE (i).szPath, tmpdir ());
-    string_set (&iSERVICE (i).szUsername, "");
-    string_set (&iSERVICE (i).comment, comment);
-    string_set (&iSERVICE (i).fstype, "IPC");
-    iSERVICE (i).status = False;
-    iSERVICE (i).iMaxConnections = 0;
-    iSERVICE (i).bAvailable = True;
-    iSERVICE (i).bRead_only = True;
-    iSERVICE (i).bGuest_only = False;
-    iSERVICE (i).bGuest_ok = True;
-    iSERVICE (i).bPrint_ok = False;
-    iSERVICE (i).bBrowseable = sDefault.bBrowseable;
-
-    DEBUG (3, ("adding IPC service\n"));
-
-    return (True);
-}
-#endif /* 0 */
 
 /***************************************************************************
 Do a case-insensitive, whitespace-ignoring string compare.
@@ -1745,89 +1672,7 @@ service_ok (int iService)
     return (bRetval);
 }
 
-#if 0
-static struct file_lists
-{
-    struct file_lists *next;
-    char *name;
-    time_t modtime;
-} *file_lists = NULL;
-
-/*******************************************************************
-keep a linked list of all config files so we know when one has changed 
-it's date and needs to be reloaded
-********************************************************************/
-static void
-add_to_file_list (const char *fname)
-{
-    struct file_lists *f = file_lists;
-
-    while (f)
-    {
-        if (f->name && !strcmp (f->name, fname))
-            break;
-        f = f->next;
-    }
-
-    if (!f)
-    {
-        f = (struct file_lists *) malloc (sizeof (file_lists[0]));
-        if (!f)
-            return;
-        f->next = file_lists;
-        f->name = strdup (fname);
-        if (!f->name)
-        {
-            free (f);
-            return;
-        }
-        file_lists = f;
-    }
-
-    {
-        pstring n2;
-        pstrcpy (n2, fname);
-        standard_sub_basic (n2);
-        f->modtime = file_modtime (n2);
-    }
-
-}
-
-
-/*******************************************************************
-check if a config file has changed date
-********************************************************************/
-BOOL
-lp_file_list_changed (void)
-{
-    struct file_lists *f = file_lists;
-    DEBUG (6, ("lp_file_list_changed()\n"));
-
-    while (f)
-    {
-        pstring n2;
-        time_t mod_time;
-
-        pstrcpy (n2, f->name);
-        standard_sub_basic (n2);
-
-        DEBUGADD (6, ("file %s -> %s  last mod_time: %s\n", f->name, n2, ctime (&f->modtime)));
-
-        mod_time = file_modtime (n2);
-
-        if (f->modtime != mod_time)
-        {
-            DEBUGADD (6, ("file %s modified: %s\n", n2, ctime (&mod_time)));
-            f->modtime = mod_time;
-            return (True);
-        }
-        f = f->next;
-    }
-    return (False);
-}
-#else
 #define add_to_file_list(x)
-#endif /* 0 */
 
 /***************************************************************************
   handle the interpretation of the coding system parameter
@@ -1952,18 +1797,6 @@ init_copymap (service * pservice)
         for (i = 0; i < NUMPARAMETERS; i++)
             pservice->copymap[i] = True;
 }
-
-#if 0
-/***************************************************************************
- return the local pointer to a parameter given the service number and the 
- pointer into the default structure
-***************************************************************************/
-void *
-lp_local_ptr (int snum, void *ptr)
-{
-    return (void *) (((char *) pSERVICE (snum)) + PTR_DIFF (ptr, &sDefault));
-}
-#endif /* 0 */
 
 /***************************************************************************
 Process a parameter for a particular service number. If snum < 0
@@ -2098,54 +1931,6 @@ do_parameter (const char *pszParmName, const char *pszParmValue)
     return (lp_do_parameter (bInGlobalSection ? -2 : iServiceIndex, pszParmName, pszParmValue));
 }
 
-#if 0
-/***************************************************************************
-check if two parameters are equal
-***************************************************************************/
-static BOOL
-equal_parameter (parm_type type, void *ptr1, void *ptr2)
-{
-    switch (type)
-    {
-    case P_BOOL:
-    case P_BOOLREV:
-        return (*((BOOL *) ptr1) == *((BOOL *) ptr2));
-
-    case P_INTEGER:
-    case P_ENUM:
-    case P_OCTAL:
-        return (*((int *) ptr1) == *((int *) ptr2));
-
-    case P_CHAR:
-        return (*((char *) ptr1) == *((char *) ptr2));
-
-    case P_GSTRING:
-    case P_UGSTRING:
-        {
-            char *p1 = (char *) ptr1, *p2 = (char *) ptr2;
-            if (p1 && !*p1)
-                p1 = NULL;
-            if (p2 && !*p2)
-                p2 = NULL;
-            return (p1 == p2 || strequal (p1, p2));
-        }
-    case P_STRING:
-    case P_USTRING:
-        {
-            char *p1 = *(char **) ptr1, *p2 = *(char **) ptr2;
-            if (p1 && !*p1)
-                p1 = NULL;
-            if (p2 && !*p2)
-                p2 = NULL;
-            return (p1 == p2 || strequal (p1, p2));
-        }
-    case P_SEP:
-        break;
-    }
-    return (False);
-}
-#endif /* 0 */
-
 /***************************************************************************
 Process a new section (service). At this stage all sections are services.
 Later we'll have special sections that permit server parameters to be set.
@@ -2201,85 +1986,6 @@ do_section (const char *pszSectionName)
     return (bRetval);
 }
 
-#if 0
-/***************************************************************************
-return True if a local parameter is currently set to the global default
-***************************************************************************/
-BOOL
-lp_is_default (int snum, struct parm_struct * parm)
-{
-    int pdiff = PTR_DIFF (parm->ptr, &sDefault);
-
-    return equal_parameter (parm->type,
-                            ((char *) pSERVICE (snum)) + pdiff, ((char *) &sDefault) + pdiff);
-}
-#endif /* 0 */
-#if 0
-/***************************************************************************
-return info about the next service  in a service. snum==-1 gives the globals
-
-return NULL when out of parameters
-***************************************************************************/
-struct parm_struct *
-lp_next_parameter (int snum, int *i, int allparameters)
-{
-    if (snum == -1)
-    {
-        /* do the globals */
-        for (; parm_table[*i].label; (*i)++)
-        {
-            if (parm_table[*i].class == P_SEPARATOR)
-                return &parm_table[(*i)++];
-
-            if (!parm_table[*i].ptr || (*parm_table[*i].label == '-'))
-                continue;
-
-            if ((*i) > 0 && (parm_table[*i].ptr == parm_table[(*i) - 1].ptr))
-                continue;
-
-            return &parm_table[(*i)++];
-        }
-    }
-    else
-    {
-        service *pService = pSERVICE (snum);
-
-        for (; parm_table[*i].label; (*i)++)
-        {
-            if (parm_table[*i].class == P_SEPARATOR)
-                return &parm_table[(*i)++];
-
-            if (parm_table[*i].class == P_LOCAL &&
-                parm_table[*i].ptr &&
-                (*parm_table[*i].label != '-') &&
-                ((*i) == 0 || (parm_table[*i].ptr != parm_table[(*i) - 1].ptr)))
-            {
-                int pdiff = PTR_DIFF (parm_table[*i].ptr, &sDefault);
-
-                if (allparameters ||
-                    !equal_parameter (parm_table[*i].type,
-                                      ((char *) pService) + pdiff, ((char *) &sDefault) + pdiff))
-                {
-                    return &parm_table[(*i)++];
-                }
-            }
-        }
-    }
-
-    return NULL;
-}
-#endif /* 0 */
-#if 0
-/***************************************************************************
-Return TRUE if the passed service number is within range.
-***************************************************************************/
-BOOL
-lp_snum_ok (int iService)
-{
-    return (LP_SNUM_OK (iService) && iSERVICE (iService).bAvailable);
-}
-#endif /* 0 */
-
 /***************************************************************************
 auto-load some home services
 ***************************************************************************/
@@ -2324,68 +2030,6 @@ lp_loaded (void)
     return (bLoaded);
 }
 
-#if 0
-/***************************************************************************
-unload unused services
-***************************************************************************/
-void
-lp_killunused (BOOL (*snumused) (int))
-{
-    int i;
-    for (i = 0; i < iNumServices; i++)
-        if (VALID (i) && (!snumused || !snumused (i)))
-        {
-            iSERVICE (i).valid = False;
-            free_service (pSERVICE (i));
-        }
-}
-#endif /* 0 */
-#if 0
-/***************************************************************************
-save the current values of all global and sDefault parameters into the 
-defaults union. This allows swat and testparm to show only the
-changed (ie. non-default) parameters.
-***************************************************************************/
-static void
-lp_save_defaults (void)
-{
-    static BOOL defaults_saved = False;
-    int i;
-
-    for (i = 0; parm_table[i].label; i++)
-    {
-        if (i > 0 && parm_table[i].ptr == parm_table[i - 1].ptr)
-            continue;
-        switch (parm_table[i].type)
-        {
-        case P_STRING:
-        case P_USTRING:
-            parm_table[i].def.svalue = strdup (*(char **) parm_table[i].ptr);
-            break;
-        case P_GSTRING:
-        case P_UGSTRING:
-            parm_table[i].def.svalue = strdup ((char *) parm_table[i].ptr);
-            break;
-        case P_BOOL:
-        case P_BOOLREV:
-            parm_table[i].def.bvalue = *(BOOL *) parm_table[i].ptr;
-            break;
-        case P_CHAR:
-            parm_table[i].def.cvalue = *(char *) parm_table[i].ptr;
-            break;
-        case P_INTEGER:
-        case P_OCTAL:
-        case P_ENUM:
-            parm_table[i].def.ivalue = *(int *) parm_table[i].ptr;
-            break;
-        case P_SEP:
-            break;
-        }
-    }
-    defaults_saved = True;
-}
-#endif /* 0 */
-
 /***************************************************************************
 Load the services array from the services file. Return True on success, 
 False on failure.
@@ -2404,15 +2048,7 @@ lp_load (const char *pszFname, BOOL global_only, BOOL save_defaults, BOOL add_ip
     bGlobalOnly = global_only;
 
     init_globals ();
-#if 0
-    if (save_defaults)
-    {
-        init_locals ();
-        lp_save_defaults ();
-    }
-#else
     (void) &save_defaults;
-#endif /* 0 */
     pstrcpy (n2, pszFname);
     standard_sub_basic (n2);
 
@@ -2427,13 +2063,7 @@ lp_load (const char *pszFname, BOOL global_only, BOOL save_defaults, BOOL add_ip
             bRetval = service_ok (iServiceIndex);
 
     lp_add_auto_services (lp_auto_services ());
-#if 0
-    if (add_ipc)
-        lp_add_ipc ();
-    set_default_server_announce_type ();
-#else
     (void) &add_ipc;
-#endif /* 0 */
 
     bLoaded = True;
 
@@ -2449,27 +2079,6 @@ lp_load (const char *pszFname, BOOL global_only, BOOL save_defaults, BOOL add_ip
 
     return (bRetval);
 }
-
-#if 0
-/***************************************************************************
-reset the max number of services
-***************************************************************************/
-void
-lp_resetnumservices (void)
-{
-    iNumServices = 0;
-}
-
-
-/***************************************************************************
-return the max number of services
-***************************************************************************/
-int
-lp_numservices (void)
-{
-    return (iNumServices);
-}
-#endif /* 0 */
 
 /***************************************************************************
 Return the number of the service with the given name, or -1 if it doesn't
@@ -2491,27 +2100,3 @@ lp_servicenumber (const char *pszServiceName)
 
     return (iService);
 }
-
-#if 0
-/*******************************************************************
-  a useful volume label function
-  ******************************************************************/
-char *
-volume_label (int snum)
-{
-    char *ret = lp_volume (snum);
-    if (!*ret)
-        return (lp_servicename (snum));
-    return (ret);
-}
-
-/***********************************************************
- Set the global name resolution order (used in smbclient).
-************************************************************/
-
-void
-lp_set_name_resolve_order (char *new_order)
-{
-    Globals.szNameResolveOrder = new_order;
-}
-#endif /* 0 */
