@@ -185,7 +185,7 @@ do_open_action() {
         ;;
     dvi)
         if [ -n "$DISPLAY" ]; then
-            (xdvi "${MC_EXT_FILENAME}" &)
+            (run-mailcap "${MC_EXT_FILENAME}" &)
         else
             dvisvga "${MC_EXT_FILENAME}" || \
                 dvi2tty "${MC_EXT_FILENAME}" | ${PAGER:-more}

@@ -29,8 +29,8 @@ do_open_action() {
     filetype=$1
 
     case "${filetype}" in
-    ram)
-        (realplay "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
+    ram|rm)
+        (see "${MC_EXT_FILENAME}" >/dev/null 2>&1 &)
         ;;
     *)
         if [ -n "$DISPLAY" ]; then
