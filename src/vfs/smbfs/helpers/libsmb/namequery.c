@@ -519,18 +519,3 @@ resolve_name (const char *name, struct in_addr * return_ip, int name_type)
 
     return False;
 }
-
-
-#if 0
-/********************************************************
-find the IP address of the master browser or DMB for a workgroup
-*********************************************************/
-BOOL
-find_master_ip (char *group, struct in_addr * master_ip)
-{
-    if (resolve_name (group, master_ip, 0x1D))
-        return True;
-
-    return resolve_name (group, master_ip, 0x1B);
-}
-#endif /* 0 */

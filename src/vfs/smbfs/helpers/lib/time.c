@@ -205,10 +205,6 @@ TimeZoneFaster (time_t t)
                 else
                     high = t;
             }
-#if 0
-            DEBUG (1, ("Added DST entry from %s ", asctime (localtime (&dst_table[i].start))));
-            DEBUG (1, ("to %s (%d)\n", asctime (localtime (&dst_table[i].end)), dst_table[i].zone));
-#endif
         }
     }
     return zone;
@@ -424,20 +420,6 @@ put_dos_date (char *buf, int offset, time_t unixdate)
     SIVAL (buf, offset, x);
 }
 
-#if 0
-/*******************************************************************
-put a dos date into a buffer (date/time format)
-This takes GMT time and puts local time in the buffer
-********************************************************************/
-void
-put_dos_date2 (char *buf, int offset, time_t unixdate)
-{
-    uint32 x = make_dos_date (unixdate);
-    x = ((x & 0xFFFF) << 16) | ((x & 0xFFFF0000) >> 16);
-    SIVAL (buf, offset, x);
-}
-#endif /* 0 */
-
 /*******************************************************************
 put a dos 32 bit "unix like" date into a buffer. This routine takes
 GMT and converts it to LOCAL time before putting it (most SMBs assume
@@ -526,25 +508,6 @@ make_unix_date3 (void *date_ptr)
         t += LocTimeDiff (t);
     return (t);
 }
-
-#if 0
-/***************************************************************************
-return a HTTP/1.0 time string
-  ***************************************************************************/
-char *
-http_timestring (time_t t)
-{
-    static fstring buf;
-    struct tm *tm = LocalTime (&t);
-
-    if (!tm)
-        slprintf (buf, sizeof (buf) - 1, "%ld seconds since the Epoch", (long) t);
-    else
-        strftime (buf, sizeof (buf) - 1, "%a, %d %b %Y %H:%M:%S %Z", tm);
-    return buf;
-}
-#endif /*0 */
-
 
 /****************************************************************************
   return the date and time as a string

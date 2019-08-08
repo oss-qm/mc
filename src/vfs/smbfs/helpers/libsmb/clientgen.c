@@ -204,36 +204,6 @@ cli_setup_packet (struct cli_state *cli)
     }
 }
 
-#if 0
-/*****************************************************************************
- Convert a character pointer in a cli_call_api() response to a form we can use.
- This function contains code to prevent core dumps if the server returns 
- invalid data.
-*****************************************************************************/
-static char *
-fix_char_ptr (unsigned int datap, unsigned int converter, char *rdata, int rdrcnt)
-{
-    if (datap == 0)
-    {                           /* turn NULL pointers into zero length strings */
-        return "";
-    }
-    else
-    {
-        unsigned int offset = datap - converter;
-
-        if (offset >= rdrcnt)
-        {
-            DEBUG (1, ("bad char ptr: datap=%u, converter=%u rdrcnt=%d>",
-                       datap, converter, rdrcnt));
-            return "<ERROR>";
-        }
-        else
-        {
-            return &rdata[offset];
-        }
-    }
-}
-#endif /* 0 */
 /****************************************************************************
   send a SMB trans or trans2 request
   ****************************************************************************/
@@ -447,29 +417,6 @@ cli_receive_trans (struct cli_state *cli, int trans,
     return (True);
 }
 
-#if 0
-/****************************************************************************
-Call a remote api on an arbitrary pipe.  takes param, data and setup buffers.
-****************************************************************************/
-BOOL
-cli_api_pipe (struct cli_state * cli, char *pipe_name, int pipe_name_len,
-              uint16 * setup, uint32 setup_count, uint32 max_setup_count,
-              char *params, uint32 param_count, uint32 max_param_count,
-              char *data, uint32 data_count, uint32 max_data_count,
-              char **rparam, uint32 * rparam_count, char **rdata, uint32 * rdata_count)
-{
-    if (pipe_name_len == 0)
-        pipe_name_len = strlen (pipe_name);
-
-    cli_send_trans (cli, SMBtrans, pipe_name, pipe_name_len, 0, 0,      /* fid, flags */
-                    setup, setup_count, max_setup_count,
-                    params, param_count, max_param_count, data, data_count, max_data_count);
-
-    return (cli_receive_trans (cli, SMBtrans,
-                               rparam, (int *) rparam_count, rdata, (int *) rdata_count));
-}
-#endif /*0 */
-
 /****************************************************************************
 call a remote api
 ****************************************************************************/
@@ -487,74 +434,6 @@ cli_api (struct cli_state *cli,
 
     return (cli_receive_trans (cli, SMBtrans, rparam, rprcnt, rdata, rdrcnt));
 }
-
-#if 0
-/****************************************************************************
-perform a NetWkstaUserLogon
-****************************************************************************/
-BOOL
-cli_NetWkstaUserLogon (struct cli_state * cli, char *user, char *workstation)
-{
-    char *rparam = NULL;
-    char *rdata = NULL;
-    char *p;
-    int rdrcnt, rprcnt;
-    pstring param;
-
-    memset (param, 0, sizeof (param));
-
-    /* send a SMBtrans command with api NetWkstaUserLogon */
-    p = param;
-    SSVAL (p, 0, 132);          /* api number */
-    p += 2;
-    pstrcpy (p, "OOWb54WrLh");
-    p = skip_string (p, 1);
-    pstrcpy (p, "WB21BWDWWDDDDDDDzzzD");
-    p = skip_string (p, 1);
-    SSVAL (p, 0, 1);
-    p += 2;
-    pstrcpy (p, user);
-    strupper (p);
-    p += 21;
-    p++;
-    p += 15;
-    p++;
-    pstrcpy (p, workstation);
-    strupper (p);
-    p += 16;
-    SSVAL (p, 0, CLI_BUFFER_SIZE);
-    p += 2;
-    SSVAL (p, 0, CLI_BUFFER_SIZE);
-    p += 2;
-
-    if (cli_api (cli, param, PTR_DIFF (p, param), 1024, /* param, length, max */
-                 NULL, 0, CLI_BUFFER_SIZE,      /* data, length, max */
-                 &rparam, &rprcnt,      /* return params, return size */
-                 &rdata, &rdrcnt        /* return data, return size */
-        ))
-    {
-        cli->rap_error = SVAL (rparam, 0);
-        p = rdata;
-
-        if (cli->rap_error == 0)
-        {
-            DEBUG (4, ("NetWkstaUserLogon success\n"));
-            cli->privileges = SVAL (p, 24);
-            fstrcpy (cli->eff_name, p + 2);
-        }
-        else
-        {
-            DEBUG (1, ("NetwkstaUserLogon gave error %d\n", cli->rap_error));
-        }
-    }
-
-    if (rparam)
-        free (rparam);
-    if (rdata)
-        free (rdata);
-    return (cli->rap_error == 0);
-}
-#endif /*0 */
 
 /****************************************************************************
 call a NetShareEnum - try and browse available connections on a host
@@ -866,28 +745,6 @@ cli_session_setup (struct cli_state *cli,
 }
 
 /****************************************************************************
- Send a uloggoff.
-*****************************************************************************/
-#if 0
-BOOL
-cli_ulogoff (struct cli_state * cli)
-{
-    memset (cli->outbuf, '\0', smb_size);
-    set_message (cli->outbuf, 2, 0, True);
-    CVAL (cli->outbuf, smb_com) = SMBulogoffX;
-    cli_setup_packet (cli);
-    SSVAL (cli->outbuf, smb_vwv0, 0xFF);
-    SSVAL (cli->outbuf, smb_vwv2, 0);   /* no additional info */
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-        return False;
-
-    return CVAL (cli->inbuf, smb_rcls) == 0;
-}
-#endif /*0 */
-
-/****************************************************************************
 send a tconX
 ****************************************************************************/
 BOOL
@@ -969,27 +826,6 @@ cli_send_tconX (struct cli_state * cli,
     cli->cnum = SVAL (cli->inbuf, smb_tid);
     return True;
 }
-
-#if 0
-/****************************************************************************
-send a tree disconnect
-****************************************************************************/
-BOOL
-cli_tdis (struct cli_state * cli)
-{
-    memset (cli->outbuf, '\0', smb_size);
-    set_message (cli->outbuf, 0, 0, True);
-    CVAL (cli->outbuf, smb_com) = SMBtdis;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-        return False;
-
-    return CVAL (cli->inbuf, smb_rcls) == 0;
-}
-#endif /*0 */
 
 /****************************************************************************
 rename a file
@@ -1138,54 +974,6 @@ cli_rmdir (struct cli_state * cli, char *dname)
     return True;
 }
 
-#if 0
-/****************************************************************************
-open a file
-****************************************************************************/
-int
-cli_nt_create (struct cli_state *cli, char *fname)
-{
-    char *p;
-
-    memset (cli->outbuf, '\0', smb_size);
-    memset (cli->inbuf, '\0', smb_size);
-
-    set_message (cli->outbuf, 24, 1 + strlen (fname), True);
-
-    CVAL (cli->outbuf, smb_com) = SMBntcreateX;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    SSVAL (cli->outbuf, smb_vwv0, 0xFF);
-    SIVAL (cli->outbuf, smb_ntcreate_Flags, 0x06);
-    SIVAL (cli->outbuf, smb_ntcreate_RootDirectoryFid, 0x0);
-    SIVAL (cli->outbuf, smb_ntcreate_DesiredAccess, 0x2019f);
-    SIVAL (cli->outbuf, smb_ntcreate_FileAttributes, 0x0);
-    SIVAL (cli->outbuf, smb_ntcreate_ShareAccess, 0x03);
-    SIVAL (cli->outbuf, smb_ntcreate_CreateDisposition, 0x01);
-    SIVAL (cli->outbuf, smb_ntcreate_CreateOptions, 0x0);
-    SIVAL (cli->outbuf, smb_ntcreate_ImpersonationLevel, 0x02);
-    SSVAL (cli->outbuf, smb_ntcreate_NameLength, strlen (fname));
-
-    p = smb_buf (cli->outbuf);
-    pstrcpy (p, fname);
-    p = skip_string (p, 1);
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-    {
-        return -1;
-    }
-
-    if (CVAL (cli->inbuf, smb_rcls) != 0)
-    {
-        return -1;
-    }
-
-    return SVAL (cli->inbuf, smb_vwv2 + 1);
-}
-#endif /*0 */
-
 /****************************************************************************
 open a file
 ****************************************************************************/
@@ -1299,101 +1087,6 @@ cli_close (struct cli_state * cli, int fnum)
 
     return True;
 }
-
-#if 0
-/****************************************************************************
-  lock a file
-****************************************************************************/
-BOOL
-cli_lock (struct cli_state * cli, int fnum, uint32 offset, uint32 len, int timeout)
-{
-    char *p;
-    int saved_timeout = cli->timeout;
-
-    memset (cli->outbuf, '\0', smb_size);
-    memset (cli->inbuf, '\0', smb_size);
-
-    set_message (cli->outbuf, 8, 10, True);
-
-    CVAL (cli->outbuf, smb_com) = SMBlockingX;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    CVAL (cli->outbuf, smb_vwv0) = 0xFF;
-    SSVAL (cli->outbuf, smb_vwv2, fnum);
-    CVAL (cli->outbuf, smb_vwv3) = 0;
-    SIVALS (cli->outbuf, smb_vwv4, timeout);
-    SSVAL (cli->outbuf, smb_vwv6, 0);
-    SSVAL (cli->outbuf, smb_vwv7, 1);
-
-    p = smb_buf (cli->outbuf);
-    SSVAL (p, 0, cli->pid);
-    SIVAL (p, 2, offset);
-    SIVAL (p, 6, len);
-    cli_send_smb (cli);
-
-    cli->timeout = (timeout == -1) ? 0x7FFFFFFF : timeout;
-
-    if (!cli_receive_smb (cli))
-    {
-        cli->timeout = saved_timeout;
-        return False;
-    }
-
-    cli->timeout = saved_timeout;
-
-    if (CVAL (cli->inbuf, smb_rcls) != 0)
-    {
-        return False;
-    }
-
-    return True;
-}
-
-/****************************************************************************
-  unlock a file
-****************************************************************************/
-BOOL
-cli_unlock (struct cli_state * cli, int fnum, uint32 offset, uint32 len, int timeout)
-{
-    char *p;
-
-    memset (cli->outbuf, '\0', smb_size);
-    memset (cli->inbuf, '\0', smb_size);
-
-    set_message (cli->outbuf, 8, 10, True);
-
-    CVAL (cli->outbuf, smb_com) = SMBlockingX;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    CVAL (cli->outbuf, smb_vwv0) = 0xFF;
-    SSVAL (cli->outbuf, smb_vwv2, fnum);
-    CVAL (cli->outbuf, smb_vwv3) = 0;
-    SIVALS (cli->outbuf, smb_vwv4, timeout);
-    SSVAL (cli->outbuf, smb_vwv6, 1);
-    SSVAL (cli->outbuf, smb_vwv7, 0);
-
-    p = smb_buf (cli->outbuf);
-    SSVAL (p, 0, cli->pid);
-    SIVAL (p, 2, offset);
-    SIVAL (p, 6, len);
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    if (CVAL (cli->inbuf, smb_rcls) != 0)
-    {
-        return False;
-    }
-
-    return True;
-}
-#endif /*0 */
-
 
 /****************************************************************************
 issue a single SMBread and don't wait for a reply
@@ -1590,49 +1283,6 @@ cli_write (struct cli_state *cli,
     return bwritten;
 }
 
-#if 0
-/****************************************************************************
-  write to a file using a SMBwrite and not bypassing 0 byte writes
-****************************************************************************/
-ssize_t
-cli_smbwrite (struct cli_state * cli, int fnum, const char *buf, off_t offset, size_t size)
-{
-    char *p;
-
-    memset (cli->outbuf, '\0', smb_size);
-    memset (cli->inbuf, '\0', smb_size);
-
-    set_message (cli->outbuf, 5, 3 + size, True);
-
-    CVAL (cli->outbuf, smb_com) = SMBwrite;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    SSVAL (cli->outbuf, smb_vwv0, fnum);
-    SSVAL (cli->outbuf, smb_vwv1, size);
-    SIVAL (cli->outbuf, smb_vwv2, offset);
-    SSVAL (cli->outbuf, smb_vwv4, 0);
-
-    p = smb_buf (cli->outbuf);
-    *p++ = 1;
-    SSVAL (p, 0, size);
-    memcpy (p + 2, buf, size);
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    if (CVAL (cli->inbuf, smb_rcls) != 0)
-    {
-        return -1;
-    }
-
-    return SVAL (cli->inbuf, smb_vwv0);
-}
-#endif /*0 */
-
 /****************************************************************************
 do a SMBgetattrE call
 ****************************************************************************/
@@ -1690,59 +1340,6 @@ cli_getattrE (struct cli_state * cli, int fd,
     return True;
 }
 
-#if 0
-/****************************************************************************
-do a SMBgetatr call
-****************************************************************************/
-BOOL
-cli_getatr (struct cli_state * cli, char *fname, uint16 * attr, size_t * size, time_t * t)
-{
-    char *p;
-
-    memset (cli->outbuf, '\0', smb_size);
-    memset (cli->inbuf, '\0', smb_size);
-
-    set_message (cli->outbuf, 0, strlen (fname) + 2, True);
-
-    CVAL (cli->outbuf, smb_com) = SMBgetatr;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    p = smb_buf (cli->outbuf);
-    *p = 4;
-    pstrcpy (p + 1, fname);
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    if (CVAL (cli->inbuf, smb_rcls) != 0)
-    {
-        return False;
-    }
-
-    if (size)
-    {
-        *size = IVAL (cli->inbuf, smb_vwv3);
-    }
-
-    if (t)
-    {
-        *t = make_unix_date3 (cli->inbuf + smb_vwv1);
-    }
-
-    if (attr)
-    {
-        *attr = SVAL (cli->inbuf, smb_vwv0);
-    }
-
-
-    return True;
-}
-#endif /* 0 */
-
 /****************************************************************************
 do a SMBsetatr call
 ****************************************************************************/
@@ -1782,170 +1379,6 @@ cli_setatr (struct cli_state * cli, char *fname, uint16 attr, time_t t)
 
     return True;
 }
-
-#if 0
-/****************************************************************************
-send a qpathinfo call
-****************************************************************************/
-BOOL
-cli_qpathinfo (struct cli_state * cli, const char *fname,
-               time_t * c_time, time_t * a_time, time_t * m_time, size_t * size, uint16 * mode)
-{
-    int data_len = 0;
-    int param_len = 0;
-    uint16 setup = TRANSACT2_QPATHINFO;
-    pstring param;
-    char *rparam = NULL, *rdata = NULL;
-    int count = 8;
-    BOOL ret;
-    time_t (*date_fn) (void *);
-
-    param_len = strlen (fname) + 7;
-
-    memset (param, 0, param_len);
-    SSVAL (param, 0, SMB_INFO_STANDARD);
-    pstrcpy (&param[6], fname);
-
-    do
-    {
-        ret = (cli_send_trans (cli, SMBtrans2, NULL, 0, /* Name, length */
-                               -1, 0,   /* fid, flags */
-                               &setup, 1, 0,    /* setup, length, max */
-                               param, param_len, 10,    /* param, length, max */
-                               NULL, data_len, cli->max_xmit    /* data, length, max */
-               ) && cli_receive_trans (cli, SMBtrans2, &rparam, &param_len, &rdata, &data_len));
-        if (!ret)
-        {
-            /* we need to work around a Win95 bug - sometimes
-               it gives ERRSRV/ERRerror temprarily */
-            uint8 eclass;
-            uint32 ecode;
-            cli_error (cli, &eclass, &ecode, NULL);
-            if (eclass != ERRSRV || ecode != ERRerror)
-                break;
-            msleep (100);
-        }
-    }
-    while (count-- && ret == False);
-
-    if (!ret || !rdata || data_len < 22)
-    {
-        return False;
-    }
-
-    if (cli->win95)
-    {
-        date_fn = make_unix_date;
-    }
-    else
-    {
-        date_fn = make_unix_date2;
-    }
-
-    if (c_time)
-    {
-        *c_time = date_fn (rdata + 0);
-    }
-    if (a_time)
-    {
-        *a_time = date_fn (rdata + 4);
-    }
-    if (m_time)
-    {
-        *m_time = date_fn (rdata + 8);
-    }
-    if (size)
-    {
-        *size = IVAL (rdata, 12);
-    }
-    if (mode)
-    {
-        *mode = SVAL (rdata, l1_attrFile);
-    }
-
-    if (rdata)
-        free (rdata);
-    if (rparam)
-        free (rparam);
-    return True;
-}
-
-/****************************************************************************
-send a qpathinfo call with the SMB_QUERY_FILE_ALL_INFO info level
-****************************************************************************/
-BOOL
-cli_qpathinfo2 (struct cli_state * cli, const char *fname,
-                time_t * c_time, time_t * a_time, time_t * m_time,
-                time_t * w_time, size_t * size, uint16 * mode, SMB_INO_T * ino)
-{
-    int data_len = 0;
-    int param_len = 0;
-    uint16 setup = TRANSACT2_QPATHINFO;
-    pstring param;
-    char *rparam = NULL, *rdata = NULL;
-
-    param_len = strlen (fname) + 7;
-
-    memset (param, 0, param_len);
-    SSVAL (param, 0, SMB_QUERY_FILE_ALL_INFO);
-    pstrcpy (&param[6], fname);
-
-    if (!cli_send_trans (cli, SMBtrans2, NULL, 0,       /* name, length */
-                         -1, 0, /* fid, flags */
-                         &setup, 1, 0,  /* setup, length, max */
-                         param, param_len, 10,  /* param, length, max */
-                         NULL, data_len, cli->max_xmit  /* data, length, max */
-        ))
-    {
-        return False;
-    }
-
-    if (!cli_receive_trans (cli, SMBtrans2, &rparam, &param_len, &rdata, &data_len))
-    {
-        return False;
-    }
-
-    if (!rdata || data_len < 22)
-    {
-        return False;
-    }
-
-    if (c_time)
-    {
-        *c_time = interpret_long_date (rdata + 0) - cli->serverzone;
-    }
-    if (a_time)
-    {
-        *a_time = interpret_long_date (rdata + 8) - cli->serverzone;
-    }
-    if (m_time)
-    {
-        *m_time = interpret_long_date (rdata + 16) - cli->serverzone;
-    }
-    if (w_time)
-    {
-        *w_time = interpret_long_date (rdata + 24) - cli->serverzone;
-    }
-    if (mode)
-    {
-        *mode = SVAL (rdata, 32);
-    }
-    if (size)
-    {
-        *size = IVAL (rdata, 48);
-    }
-    if (ino)
-    {
-        *ino = IVAL (rdata, 64);
-    }
-
-    if (rdata)
-        free (rdata);
-    if (rparam)
-        free (rparam);
-    return True;
-}
-#endif /* 0 */
 
 /****************************************************************************
 send a qfileinfo call
@@ -2720,28 +2153,6 @@ cli_error (struct cli_state *cli, uint8 * eclass, uint32 * num, uint32 * nt_rpc_
     return EINVAL;
 }
 
-#if 0
-/****************************************************************************
-set socket options on a open connection
-****************************************************************************/
-void
-cli_sockopt (struct cli_state *cli, char *options)
-{
-    set_socket_options (cli->fd, options);
-}
-
-/****************************************************************************
-set the PID to use for smb messages. Return the old pid.
-****************************************************************************/
-uint16
-cli_setpid (struct cli_state *cli, uint16 pid)
-{
-    uint16 ret = cli->pid;
-    cli->pid = pid;
-    return ret;
-}
-#endif /* 0 */
-
 /****************************************************************************
 re-establishes a connection
 ****************************************************************************/
@@ -2959,134 +2370,3 @@ cli_chkpath (struct cli_state * cli, char *path)
 
     return True;
 }
-
-#if 0
-/****************************************************************************
-start a message sequence
-****************************************************************************/
-BOOL
-cli_message_start (struct cli_state * cli, char *host, char *username, int *grp)
-{
-    char *p;
-
-    /* send a SMBsendstrt command */
-    memset (cli->outbuf, '\0', smb_size);
-    set_message (cli->outbuf, 0, 0, True);
-    CVAL (cli->outbuf, smb_com) = SMBsendstrt;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    p = smb_buf (cli->outbuf);
-    *p++ = 4;
-    pstrcpy (p, username);
-    p = skip_string (p, 1);
-    *p++ = 4;
-    pstrcpy (p, host);
-    p = skip_string (p, 1);
-
-    set_message (cli->outbuf, 0, PTR_DIFF (p, smb_buf (cli->outbuf)), False);
-
-    cli_send_smb (cli);
-
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    if (cli_error (cli, NULL, NULL, NULL))
-        return False;
-
-    *grp = SVAL (cli->inbuf, smb_vwv0);
-
-    return True;
-}
-
-
-/****************************************************************************
-send a message 
-****************************************************************************/
-BOOL
-cli_message_text (struct cli_state * cli, char *msg, int len, int grp)
-{
-    char *p;
-
-    memset (cli->outbuf, '\0', smb_size);
-    set_message (cli->outbuf, 1, len + 3, True);
-    CVAL (cli->outbuf, smb_com) = SMBsendtxt;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    SSVAL (cli->outbuf, smb_vwv0, grp);
-
-    p = smb_buf (cli->outbuf);
-    *p = 1;
-    SSVAL (p, 1, len);
-    memcpy (p + 3, msg, len);
-    cli_send_smb (cli);
-
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    if (cli_error (cli, NULL, NULL, NULL))
-        return False;
-
-    return True;
-}
-
-/****************************************************************************
-end a message 
-****************************************************************************/
-BOOL
-cli_message_end (struct cli_state * cli, int grp)
-{
-    memset (cli->outbuf, '\0', smb_size);
-    set_message (cli->outbuf, 1, 0, True);
-    CVAL (cli->outbuf, smb_com) = SMBsendend;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-
-    SSVAL (cli->outbuf, smb_vwv0, grp);
-
-    cli_setup_packet (cli);
-
-    cli_send_smb (cli);
-
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    if (cli_error (cli, NULL, NULL, NULL))
-        return False;
-
-    return True;
-}
-#endif /*0 */
-
-#if 0                           /* May be useful one day */
-/****************************************************************************
-query disk space
-****************************************************************************/
-BOOL
-cli_dskattr (struct cli_state * cli, int *bsize, int *total, int *avail)
-{
-    memset (cli->outbuf, '\0', smb_size);
-    set_message (cli->outbuf, 0, 0, True);
-    CVAL (cli->outbuf, smb_com) = SMBdskattr;
-    SSVAL (cli->outbuf, smb_tid, cli->cnum);
-    cli_setup_packet (cli);
-
-    cli_send_smb (cli);
-    if (!cli_receive_smb (cli))
-    {
-        return False;
-    }
-
-    *bsize = SVAL (cli->inbuf, smb_vwv1) * SVAL (cli->inbuf, smb_vwv2);
-    *total = SVAL (cli->inbuf, smb_vwv0);
-    *avail = SVAL (cli->inbuf, smb_vwv3);
-
-    return True;
-}
-#endif /* 0 */

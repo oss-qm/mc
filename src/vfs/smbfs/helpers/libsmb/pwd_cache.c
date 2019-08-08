@@ -75,49 +75,6 @@ pwd_obfuscate_key (struct pwd_info *pwd, uint32 int_key, char *str_key)
     (void) str_key;
 }
 
-#if 0
-/****************************************************************************
-reads a password
-****************************************************************************/
-void
-pwd_read (struct pwd_info *pwd, char *passwd_report, BOOL do_encrypt)
-{
-    /* grab a password */
-    char *user_pass;
-
-    pwd_init (pwd);
-
-    user_pass = (char *) getpass (passwd_report);
-
-    if (user_pass == NULL || user_pass[0] == 0)
-    {
-        pwd_set_nullpwd (pwd);
-    }
-    else if (do_encrypt)
-    {
-        pwd_make_lm_nt_16 (pwd, user_pass);
-    }
-    else
-    {
-        pwd_set_cleartext (pwd, user_pass);
-    }
-}
-
-
-/****************************************************************************
- stores a cleartext password
- ****************************************************************************/
-void
-pwd_set_nullpwd (struct pwd_info *pwd)
-{
-    pwd_init (pwd);
-
-    pwd->cleartext = False;
-    pwd->null_pwd = True;
-    pwd->crypted = False;
-}
-#endif /* 0 */
-
 /****************************************************************************
  stores a cleartext password
  ****************************************************************************/

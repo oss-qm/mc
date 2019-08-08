@@ -258,33 +258,6 @@ load_interfaces (void)
     interpret_interfaces (lp_interfaces (), &local_interfaces, "interface");
 }
 
-#if 0
-/****************************************************************************
-  override the defaults
-  **************************************************************************/
-void
-iface_set_default (char *ip, char *bcast, char *nmask)
-{
-    if (ip)
-    {
-        got_ip = True;
-        default_ip = *interpret_addr2 (ip);
-    }
-
-    if (bcast)
-    {
-        got_bcast = True;
-        default_bcast = *interpret_addr2 (bcast);
-    }
-
-    if (nmask)
-    {
-        got_nmask = True;
-        default_nmask = *interpret_addr2 (nmask);
-    }
-}
-#endif /* 0 */
-
 /****************************************************************************
   check if an IP is one of mine
   **************************************************************************/
@@ -297,21 +270,6 @@ ismyip (struct in_addr ip)
             return True;
     return False;
 }
-
-#if 0
-/****************************************************************************
-  check if a packet is from a local (known) net
-  **************************************************************************/
-BOOL
-is_local_net (struct in_addr from)
-{
-    struct interface *i;
-    for (i = local_interfaces; i; i = i->next)
-        if ((from.s_addr & i->nmask.s_addr) == (i->ip.s_addr & i->nmask.s_addr))
-            return True;
-    return False;
-}
-#endif /* 0 */
 
 /****************************************************************************
   how many interfaces do we have
@@ -327,37 +285,6 @@ iface_count (void)
     return ret;
 }
 
-#if 0
-/****************************************************************************
- True if we have two or more interfaces.
-  **************************************************************************/
-BOOL
-we_are_multihomed (void)
-{
-    static int multi = -1;
-
-    if (multi == -1)
-        multi = (iface_count () > 1 ? True : False);
-
-    return multi;
-}
-
-/****************************************************************************
-  return the Nth interface
-  **************************************************************************/
-struct interface *
-get_interface (int n)
-{
-    struct interface *i;
-
-    for (i = local_interfaces; i && n; i = i->next)
-        n--;
-
-    if (i)
-        return i;
-    return NULL;
-}
-#endif /* 0 */
 /****************************************************************************
   return IP of the Nth interface
   **************************************************************************/
@@ -390,30 +317,6 @@ iface_find (struct in_addr ip)
 
     return NULL;
 }
-
-#if 0
-/****************************************************************************
-this function provides a simple hash of the configured interfaces. It is
-used to detect a change in interfaces to tell us whether to discard
-the current wins.dat file.
-Note that the result is independent of the order of the interfaces
-  **************************************************************************/
-unsigned
-iface_hash (void)
-{
-    unsigned ret = 0;
-    struct interface *i;
-
-    for (i = local_interfaces; i; i = i->next)
-    {
-        unsigned x1 = (unsigned) str_checksum (inet_ntoa (i->ip));
-        unsigned x2 = (unsigned) str_checksum (inet_ntoa (i->nmask));
-        ret ^= (x1 ^ x2);
-    }
-
-    return ret;
-}
-#endif /* 0 */
 
 /* these 3 functions return the ip/bcast/nmask for the interface
    most appropriate for the given ip address. If they can't find
