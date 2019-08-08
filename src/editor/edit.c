@@ -89,7 +89,7 @@ gboolean option_cursor_beyond_eol = FALSE;
 gboolean option_line_state = FALSE;
 int option_line_state_width = 0;
 gboolean option_cursor_after_inserted_block = FALSE;
-gboolean option_state_full_filename = FALSE;
+gboolean option_state_full_filename = TRUE;
 
 gboolean enable_show_tabs_tws = TRUE;
 gboolean option_check_nl_at_eof = FALSE;

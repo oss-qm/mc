@@ -601,7 +601,7 @@ will be untouched. Default value is
 "\fB-\fR\fB+\fR\fB*\fR\fB\\\fR\fB,\fR\fB.\fR\fB;\fR\fB:\fR\fB&\fR\fB>\fR".
 .TP
 .I editor_state_full_filename
-Show full path name in the status line. If disabled (default), only base name of the
+Show full path name in the status line. If disabled, only base name of the
 file is shown.
 .SH MISCELLANEOUS
 The editor also displays non\-us characters (160+).  When editing
