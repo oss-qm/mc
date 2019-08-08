@@ -48,3 +48,7 @@ make.gcc
 make.tcc
 tests/src/editor/test-data.txt
 tests/src/vfs/extfs/helpers-list/data/config.sh
+mc-build-deps_*.deb
+debian/autoreconf.after
+debian/autoreconf.before
+*.debhelper.log
