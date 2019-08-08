@@ -261,11 +261,12 @@ if test x"$samba_cv_HAVE_FUNCTION_MACRO" = x"yes"; then
 fi
 
 AC_CACHE_CHECK([if gettimeofday takes tz argument],samba_cv_HAVE_GETTIMEOFDAY_TZ,[
-AC_TRY_RUN([
+AC_TRY_COMPILE([
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
-main() { struct timeval tv; exit(gettimeofday(&tv, NULL));}],
+],[
+struct timeval tv; exit(gettimeofday(&tv, NULL));],
            samba_cv_HAVE_GETTIMEOFDAY_TZ=yes,samba_cv_HAVE_GETTIMEOFDAY_TZ=no,samba_cv_HAVE_GETTIMEOFDAY_TZ=cross)])
 if test x"$samba_cv_HAVE_GETTIMEOFDAY_TZ" = x"yes"; then
     AC_DEFINE(HAVE_GETTIMEOFDAY_TZ, 1, [Define if gettimeofday takes tz argument])
