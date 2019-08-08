@@ -636,7 +636,7 @@ mc_setup_run_mode (char **argv)
 
     base = x_basename (argv[0]);
 
-    if (strncmp (base, "mce", 3) == 0 || strcmp (base, "vi") == 0)
+    if (strncmp (base, "mce", 3) == 0 || strcmp (base, "vi") == 0 || strcmp (base, "editor") == 0)
     {
         /* mce* or vi is link to mc */
         mc_global.mc_run_mode = MC_RUN_EDITOR;
