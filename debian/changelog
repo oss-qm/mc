@@ -1,6 +1,6 @@
-mc (3:4.8.23~8-1) unstable; urgency=medium
+mc (3:4.8.23~28-1) unstable; urgency=medium
 
-  * New upstream: 4.8.23~8 27fe8f39a3e79965f3f16029ec7a25a4840d645d
+  * New upstream: 4.8.23~28 c281e7c6ed20de8e03bbe016fe60cf1ba646cd9f
 
  -- Enrico Weigelt, metux IT consult <info@metux.net>  Thu, 08 Aug 2019 18:49:34 +0200
 
