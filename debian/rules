@@ -18,6 +18,8 @@ override_dh_autoreconf:
 	intltoolize --automake --copy --force
 	dh_autoreconf $(DH_AS_NEEDED)
 
+# CONFIGURE_X11=--with-x
+
 # --enable-werror will cause FTBFS on GNU Hurd:
 # src/vfs/fish/fish.c: In function 'fish_fh_open':
 # fish.c:1517:5: error: 'and' of mutually exclusive equal-tests is always 0 [-Werror]
@@ -27,7 +29,7 @@ override_dh_autoreconf:
 override_dh_auto_configure:
 	dh_auto_configure -- AWK="awk" X11_WWW="x-www-browser" \
 		--libexecdir='/usr/lib' \
-		--with-x \
+		$(CONFIGURE_X11) \
 		--with-screen=slang \
 		--disable-rpath \
 		--disable-static \
